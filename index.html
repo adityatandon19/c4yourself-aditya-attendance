@@ -1,1294 +1,326 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C 4 Yourself - Attendance Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- QRCode.js for generating QR codes -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .spinner {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#1e3a8a">
+  <meta name="description" content="C 4 Yourself attendance tracker – teacher-managed QR attendance for classes.">
+  <title>C 4 Yourself | Attendance Tracker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+  <style>
+    :root{color-scheme:light;--navy:#10264d;--primary:#304fd2;--primary2:#eaf0ff;--muted:#61718c;--line:#dde5f2;--bg:#f3f6fb;--red:#b42318;--green:#067647;--orange:#a15c08}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--navy);line-height:1.5}
+    button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
+    .wrap{max-width:1140px;margin:auto;padding:22px 18px}.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+    .brand{display:flex;align-items:center;gap:12px}.brand img{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);object-fit:cover}
+    .brand h1{font-size:19px;margin:0;font-weight:800;letter-spacing:-.03em}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:650;letter-spacing:.11em;text-transform:uppercase}
+    .toprow{display:flex;justify-content:space-between;align-items:center;gap:12px}.tag{font-size:12px;color:var(--primary);background:var(--primary2);border-radius:50px;padding:6px 10px;font-weight:750}
+    .hero{background:linear-gradient(135deg,#142b55,#3858b5);border-radius:18px;color:#fff;padding:28px;margin:10px 0 22px;box-shadow:0 15px 35px rgba(35,61,123,.14)}
+    h2{font-size:24px;line-height:1.2;letter-spacing:-.035em;margin:0 0 8px}h3{font-size:18px;letter-spacing:-.02em;margin:0 0 14px}
+    p{margin:0 0 12px}.muted{color:var(--muted)}.hero .muted{color:#cfdbfa}.note{font-size:13px;color:var(--muted)}
+    .card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:22px;box-shadow:0 4px 14px rgba(42,64,112,.04)}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.twocol{display:grid;grid-template-columns:1.15fr 1fr;gap:18px}
+    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}label{font-size:13px;font-weight:700}
+    input:not([type=checkbox]),select,textarea{width:100%;padding:11px 12px;border:1px solid #c9d5e7;border-radius:9px;background:#fff;color:#182e52;outline:0}
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px #304fd21c}textarea{resize:vertical;min-height:145px}
+    .btn{border:1px solid transparent;border-radius:9px;padding:10px 15px;font-size:13px;font-weight:750;background:var(--primary);color:#fff;display:inline-flex;justify-content:center;align-items:center;gap:8px;text-decoration:none}
+    .btn:hover:not(:disabled){filter:brightness(.94)}.btn.outline{background:#fff;border-color:#c5d1e6;color:var(--navy)}.btn.subtle{background:var(--primary2);color:var(--primary)}.btn.danger{background:#fef3f2;color:var(--red);border-color:#fedbd8}.btn.sm{padding:7px 10px;font-size:12px}
+    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.flexrow{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .nav{display:flex;gap:7px;margin-bottom:19px;flex-wrap:wrap}.nav button{background:transparent;border:none;border-radius:9px;padding:10px 14px;color:var(--muted);font-weight:750}
+    .nav button.active{background:#e7edff;color:var(--primary)}.pill{padding:4px 8px;border-radius:999px;font-size:11px;font-weight:750;background:#eef2f9;color:#52627f}
+    .pill.green{background:#e4f8ec;color:var(--green)}.pill.red{background:#fff0ee;color:var(--red)}.pill.amber{background:#fff5e5;color:var(--orange)}
+    .item{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:14px 0;border-top:1px solid #edf0f7}
+    .item:first-child{border-top:none}.time{font-weight:800;font-variant-numeric:tabular-nums;min-width:125px;font-size:13px;color:var(--primary)}.itemtitle{font-weight:800}
+    .slotrow{display:flex;align-items:center;gap:14px;flex:1}.checkbox{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer}.checkbox input{accent-color:var(--primary);width:16px;height:16px}
+    .space{margin-top:18px}.full{width:100%}.hidden{display:none!important}.alert{padding:13px 15px;border-radius:9px;margin:12px 0;font-size:13px}
+    .alert.error{background:#fff0ef;color:var(--red);border:1px solid #ffd5cf}.alert.ok{background:#ecfdf3;color:var(--green);border:1px solid #b7e7cc}.alert.warn{background:#fffaeb;color:#925d09;border:1px solid #ffe4a7}
+    .tablewrap{max-width:100%;overflow:auto;border:1px solid var(--line);border-radius:12px}table{border-collapse:collapse;width:100%;font-size:13px;text-align:left}
+    th{background:#f8faff;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);position:sticky;top:0}
+    th,td{padding:10px 12px;border-bottom:1px solid #eaf0f8}tr:last-child td{border-bottom:none}
+    .counter{font-size:30px;font-weight:850;color:var(--primary);font-variant-numeric:tabular-nums}
+    .qrbox{background:#fff;border:1px solid var(--line);width:max-content;max-width:100%;margin:18px auto;padding:18px;border-radius:14px}
+    .qrbox img,.qrbox canvas{display:block}.stack>*+*{margin-top:14px}.footer{color:#8b99af;text-align:center;padding:25px 0 40px;font-size:12px}
+    .login{max-width:500px;margin:26px auto}.center{text-align:center}.break{overflow-wrap:anywhere}.badge{background:#eef2f7;border-radius:8px;padding:6px 10px;font-weight:750;font-size:12px}
+    @media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.twocol{grid-template-columns:1fr}}
+    @media(max-width:610px){.wrap{padding:14px 12px}.grid{grid-template-columns:1fr}.hero{padding:22px}.card{padding:17px}.item{align-items:flex-start;flex-direction:column}.slotrow{align-items:flex-start;flex-direction:column;gap:3px}.time{min-width:0}.item .btn{width:100%}.nav button{padding:8px 11px;font-size:12px}}
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body>
+  <header class="top"><div class="wrap toprow" style="padding-top:12px;padding-bottom:12px">
+    <div class="brand"><img src="logo.png" alt="C 4 Yourself logo" onerror="this.style.display='none'"><div><h1>C 4 Yourself</h1><small>Attendance Tracker</small></div></div>
+    <div class="actions"><span id="connection" class="tag">Cloudflare D1</span><button id="logout" class="btn outline sm hidden" type="button">Teacher logout</button></div>
+  </div></header>
+  <main class="wrap">
+    <section id="login-screen" class="login hidden">
+      <div class="card"><h2>Teacher access</h2><p class="muted">Enter the private ADMIN_KEY configured in your Cloudflare Worker. This key is held in memory and is not saved in the website or browser storage.</p>
+      <form id="login-form"><div class="field"><label for="admin-key">Teacher secret key</label><input id="admin-key" type="password" autocomplete="off" required placeholder="Enter ADMIN_KEY"></div>
+      <button class="btn full" type="submit" id="login-button">Unlock dashboard</button></form><div id="login-error" class="alert error hidden"></div></div>
+    </section>
 
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-    <!-- Header -->
-    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <img src="logo.png" onerror="this.onerror=null; this.src='https://placehold.co/100x100/4f46e5/ffffff?text=C4Y';" alt="C 4 Yourself Logo" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm bg-white">
-                <h1 class="text-xl font-bold text-slate-900 tracking-tight">C 4 Yourself</h1>
-            </div>
-            <div id="user-info" class="text-sm font-medium text-slate-500 hidden">
-                <span id="role-badge" class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs">Teacher Mode</span>
-            </div>
+    <section id="teacher-screen" class="hidden">
+      <div class="hero"><div class="flexrow"><div><div style="font-size:11px;font-weight:800;letter-spacing:.13em;color:#bcd1ff;margin-bottom:8px">FACULTY CONTROL PANEL</div><h2>Today's classes. One-click QR attendance.</h2><p class="muted" style="margin:0">Preloaded timetable · Cloudflare D1 records · No Firebase</p></div><span class="badge" style="background:#ffffff24;color:white">Teacher mode</span></div></div>
+      <nav class="nav" aria-label="Teacher dashboard tabs">
+        <button type="button" data-tab="schedule" class="active">Daily schedule</button><button type="button" data-tab="classes">Class rosters</button><button type="button" data-tab="history">Attendance history</button>
+      </nav>
+      <section id="tab-schedule">
+        <div class="twocol">
+          <div class="card"><div class="flexrow"><h3 style="margin:0">Scheduled lectures</h3><input id="schedule-date" type="date" aria-label="Select schedule date" style="width:175px"></div>
+            <div class="space"><label class="checkbox"><input id="holiday-toggle" type="checkbox"> Mark as holiday on this device</label></div>
+            <div id="daily-schedule" class="space"></div>
+          </div>
+          <div class="card" id="start-form-card"><h3>Start attendance</h3><p class="note">Pick the class and lecture time. You can use this for regular or extra classes.</p>
+            <form id="session-form">
+              <div class="field"><label for="session-class">Class / Section</label><select id="session-class" required></select></div>
+              <div class="field"><label for="session-slot">Lecture time slot</label><select id="session-slot" required></select></div>
+              <div class="field"><label for="session-room">Classroom (optional)</label><input id="session-room" maxlength="80" placeholder="KC-407 / Lab"></div>
+              <label class="checkbox" style="margin-bottom:17px"><input id="session-geo" type="checkbox"> Require student's location within 200 metres</label>
+              <p class="note">Location checks rely on device-reported GPS and cannot guarantee physical presence.</p>
+              <button id="start-button" class="btn full" type="submit">Generate attendance QR</button>
+            </form>
+            <div id="session-error" class="alert error hidden"></div>
+          </div>
         </div>
-    </header>
+      </section>
 
-    <!-- Main Content Area -->
-    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <!-- Loading State -->
-        <div id="global-loader" class="flex flex-col items-center justify-center py-20">
-            <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-            <p class="mt-4 text-slate-500 font-medium">Initializing connection...</p>
+      <section id="tab-classes" class="hidden">
+        <div class="flexrow" style="margin-bottom:14px"><div><h3 style="margin:0 0 3px">Class rosters</h3><p class="note" style="margin:0">Class definitions load from the repository. Student names and rolls are stored privately in D1.</p></div><button id="refresh-rosters" type="button" class="btn outline sm">Refresh counts</button></div>
+        <div id="class-cards" class="grid"></div>
+        <div id="roster-editor" class="card space hidden">
+          <div class="flexrow"><h3 id="roster-title" style="margin:0">Import roster</h3><button id="close-roster" class="btn outline sm" type="button">Close</button></div>
+          <p class="note">Paste one student per line: <strong>Roll Number, Full Name</strong>. The first header row is optional. You may also import a CSV file. Saving replaces this class's previous roster.</p>
+          <div class="field"><label for="roster-file">CSV file (optional)</label><input id="roster-file" type="file" accept=".csv,text/csv,text/plain"></div>
+          <div class="field"><label for="roster-text">Student list</label><textarea id="roster-text" placeholder="2400320100369, Bhumika Yadav\n2400320100370, Another Student" spellcheck="false"></textarea></div>
+          <div class="actions"><button id="save-roster" type="button" class="btn">Save roster to D1</button><span id="roster-count" class="note"></span></div>
+          <div id="roster-error" class="alert error hidden"></div>
         </div>
+      </section>
 
-        <!-- ==================== TEACHER VIEW ==================== -->
-        <div id="teacher-view" class="hidden">
-            <!-- Navigation / Tabs -->
-            <div class="flex space-x-4 mb-6 border-b border-slate-200" id="teacher-tabs">
-                <button onclick="ui.switchTeacherTab('schedule')" id="tab-schedule" class="px-4 py-2 border-b-2 border-indigo-600 text-indigo-600 font-medium transition-colors">Daily Schedule</button>
-                <button onclick="ui.switchTeacherTab('dashboard')" id="tab-dashboard" class="px-4 py-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium transition-colors">All Classes</button>
-                <button onclick="ui.switchTeacherTab('new-class')" id="tab-new-class" class="px-4 py-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium transition-colors">Add New Class</button>
-                <!-- NEW HISTORY BUTTON -->
-                <button onclick="ui.switchTeacherTab('history'); app.loadHistory();" id="tab-history" class="px-4 py-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium transition-colors">History</button>
-            </div>
+      <section id="tab-history" class="hidden">
+        <div class="flexrow" style="margin-bottom:14px"><h3 style="margin:0">Attendance history</h3><button id="refresh-history" class="btn outline sm" type="button">Refresh history</button></div>
+        <div id="history-items" class="card"></div>
+      </section>
 
-            <!-- Tab Content: Daily Schedule -->
-            <div id="panel-schedule" class="space-y-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <label class="text-sm font-semibold text-slate-700">Select Date:</label>
-                        <input type="date" id="schedule-date" onchange="app.renderSchedule()" class="px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium">
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <label class="flex items-center gap-2 text-sm text-slate-600 font-medium cursor-pointer bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-                            <input type="checkbox" id="toggle-holiday" onchange="app.toggleHoliday(this.checked)" class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500">
-                            <span id="holiday-label">Mark as Holiday</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Schedule List -->
-                <div id="schedule-list" class="flex flex-col gap-4">
-                    <!-- Classes for the day injected here -->
-                </div>
-            </div>
-
-            <!-- Tab Content: Dashboard (List of Classes) -->
-            <div id="panel-dashboard" class="hidden space-y-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h2 class="text-lg font-semibold text-slate-900">Manage Classes</h2>
-                    <div class="flex items-center gap-4">
-                        <label class="flex items-center gap-2 text-sm text-slate-600 font-medium cursor-pointer" title="Checks if students are within 200 meters of your current location">
-                            <input type="checkbox" id="toggle-geo" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
-                            Enable Geo-Fencing
-                        </label>
-                        <button onclick="ui.switchTeacherTab('new-class')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm text-sm font-medium transition-colors">
-                            + Create Class
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="classes-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Classes will be injected here -->
-                </div>
-                
-                <div id="no-classes-msg" class="hidden text-center py-12 bg-white rounded-xl border border-slate-200 shadow-sm">
-                    <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                    <h3 class="mt-2 text-sm font-semibold text-slate-900">No classes found</h3>
-                    <p class="mt-1 text-sm text-slate-500">Get started by creating a new class list.</p>
-                </div>
-            </div>
-
-            <!-- Tab Content: Add New Class -->
-            <div id="panel-new-class" class="hidden max-w-2xl bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h2 class="text-lg font-semibold text-slate-900 mb-4">Create a New Class</h2>
-                <form id="form-new-class" onsubmit="app.handleCreateClass(event)" class="space-y-5">
-                    <div>
-                        <label for="class-name" class="block text-sm font-medium text-slate-700 mb-1">Class/Section Name</label>
-                        <input type="text" id="class-name" required placeholder="e.g. CSE 21" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow">
-                    </div>
-                    <div>
-                        <label for="student-list" class="block text-sm font-medium text-slate-700 mb-1">Student List</label>
-                        <p class="text-xs text-slate-500 mb-2">Paste your student list below. Format: <strong class="font-mono text-slate-600">Roll Number, Full Name</strong> (one per line).</p>
-                        <textarea id="student-list" required rows="8" placeholder="101, Alice Smith&#10;102, Bob Jones&#10;103, Charlie Brown" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow font-mono text-sm"></textarea>
-                    </div>
-                    <div class="flex justify-end pt-2">
-                        <button type="submit" id="btn-save-class" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg shadow-sm font-medium transition-colors flex items-center justify-center min-w-[120px]">
-                            Save Class
-                        </button>
-                    </div>
-                </form>
-            </div>
-            <!-- Tab Content: History View -->
-            <div id="panel-history" class="hidden space-y-6">
-                <h2 class="text-lg font-semibold text-slate-900 mb-4">Past Attendance Records</h2>
-                <div id="history-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Past sessions injected here -->
-                </div>
-                
-                <!-- Expanded Detail View for a specific session -->
-                <div id="history-detail" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
-                    <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
-                        <h3 class="font-bold text-lg text-slate-800" id="history-detail-title">Session Details</h3>
-                        <button onclick="document.getElementById('history-detail').classList.add('hidden')" class="text-slate-400 hover:text-red-500 font-bold transition-colors">✕ Close</button>
-                    </div>
-                    <div class="overflow-y-auto max-h-96">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="sticky top-0 bg-white border-b border-slate-200 shadow-sm ring-1 ring-slate-200 ring-opacity-50">
-                                <tr>
-                                    <th class="py-3 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Roll No.</th>
-                                    <th class="py-3 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
-                                    <th class="py-3 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
-                                    <th class="py-3 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Location</th>
-                                    <th class="py-3 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-roster-body" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <!-- Tab Content: Active Session (QR Code & Live Tracking) -->
-            <div id="panel-active-session" class="hidden">
-                <div class="mb-4 flex items-center justify-between bg-indigo-50 p-4 rounded-lg border border-indigo-100">
-                    <div>
-                        <h2 class="text-xl font-bold text-indigo-900" id="active-session-title">Live Session</h2>
-                        <p class="text-sm text-indigo-700">Students can scan the QR code to mark attendance.</p>
-                    </div>
-                    <button onclick="app.endSession()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
-                        End Session
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Left: QR Code -->
-                    <div class="lg:col-span-1 flex flex-col items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <div id="qrcode" class="p-4 bg-white border-4 border-slate-100 rounded-xl shadow-inner mb-6"></div>
-                        <p class="text-sm text-slate-500 font-medium mb-2 uppercase tracking-wide">Or share this link:</p>
-                        <div class="flex w-full items-center gap-2">
-                            <input type="text" id="session-link" readonly class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded text-slate-600 font-mono outline-none">
-                            <button onclick="ui.copySessionLink()" class="p-2 bg-slate-200 hover:bg-slate-300 rounded text-slate-700 transition-colors" title="Copy Link">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Right: Live Roster -->
-                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[500px]">
-                        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-xl">
-                            <h3 class="font-semibold text-slate-800">Class Roster</h3>
-                            <div class="text-sm font-medium">
-                                <span class="text-green-600" id="count-present">0</span> Present / 
-                                <span class="text-slate-500" id="count-total">0</span> Total
-                            </div>
-                        </div>
-                        <div class="overflow-y-auto p-0 flex-grow relative">
-                            <table class="w-full text-left border-collapse">
-                                <thead class="sticky top-0 bg-white border-b border-slate-200 shadow-sm ring-1 ring-slate-200 ring-opacity-50">
-                                <tr>
-                                    <th class="py-3 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Roll No.</th>
-                                    <th class="py-3 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
-                                    <th class="py-3 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Location</th>
-                                    <th class="py-3 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Status</th>
-                                </tr>
-                            </thead>
-                                <tbody id="live-roster-body" class="divide-y divide-slate-100">
-                                    <!-- Roster rows injected here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <section id="active-panel" class="hidden">
+        <div class="hero"><div class="flexrow"><div><div style="font-size:11px;letter-spacing:.12em;font-weight:800;color:#cbd7f8;margin-bottom:5px">ACTIVE ATTENDANCE SESSION</div><h2 id="active-title">Live attendance</h2><p id="active-subtitle" class="muted" style="margin:0"></p></div><button id="end-session" type="button" class="btn danger">End session</button></div></div>
+        <div class="twocol">
+          <div class="card center"><h3>Student QR code</h3><p class="note">Display this code in your classroom. Students scan it to enter their roll number and email.</p><div id="qr-code" class="qrbox"></div>
+          <div class="field" style="text-align:left"><label for="session-link">Student attendance link</label><input id="session-link" readonly></div>
+          <button class="btn subtle full" id="copy-link" type="button">Copy student link</button>
+          </div>
+          <div class="card"><div class="flexrow"><div><h3 style="margin:0">Live roster</h3><p class="note" style="margin:0">Refreshes every 5 seconds</p></div><div class="center"><div class="counter" id="live-count">0/0</div><div class="note">present / enrolled</div></div></div>
+            <div class="tablewrap space" style="max-height:465px"><table><thead><tr><th>Roll</th><th>Student</th><th>Status</th><th>Action</th></tr></thead><tbody id="live-rows"></tbody></table></div>
+          </div>
         </div>
-
-        <!-- ==================== STUDENT VIEW ==================== -->
-        <div id="student-view" class="hidden max-w-md mx-auto">
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
-                <div class="bg-indigo-600 p-6 text-center text-white">
-                    <img src="logo.png" onerror="this.onerror=null; this.src='https://placehold.co/100x100/4f46e5/ffffff?text=C4Y';" alt="C 4 Yourself Logo" class="w-16 h-16 mx-auto mb-3 rounded-full object-cover border-2 border-indigo-300 shadow-md bg-white">
-                    <h2 class="text-2xl font-bold mb-1">C 4 Yourself</h2>
-                    <p id="student-class-name" class="text-indigo-200 font-medium text-sm">Loading...</p>
-                </div>
-                
-                <div id="student-content" class="p-6">
-                    <form id="form-student-mark" onsubmit="app.handleMarkAttendance(event)" class="space-y-6">
-                        <div>
-                            <label for="student-select" class="block text-sm font-medium text-slate-700 mb-2">Who are you?</label>
-                            <select id="student-select" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow text-slate-800 bg-slate-50 appearance-none">
-                                <option value="">Loading students...</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500 mt-[72px] mr-6">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="student-email" class="block text-sm font-medium text-slate-700 mb-2 mt-4">Email Address</label>
-                            <input type="email" id="student-email" required placeholder="Enter your email" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow text-slate-800 bg-slate-50">
-                        </div>
-
-                        <button type="submit" id="btn-mark" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-4 rounded-xl shadow-md font-semibold text-lg transition-all transform active:scale-[0.98] flex justify-center items-center">
-                            Submit Attendance
-                        </button>
-                    </form>
-
-                    <!-- Success State -->
-                    <div id="student-success" class="hidden text-center py-4">
-                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-2">Done!</h3>
-                        <p class="text-slate-500 mb-6">Your attendance has been recorded successfully.</p>
-                        <p class="text-sm text-slate-400">You may now close this page.</p>
-                    </div>
-
-                    <!-- Error State (Invalid Session) -->
-                    <div id="student-error" class="hidden text-center py-4">
-                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-2">Session Inactive</h3>
-                        <p class="text-slate-500" id="student-error-msg">This attendance session is no longer active or does not exist.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Application Logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // ==========================================
-        // 🚨 FIREBASE CONFIGURATION (REQUIRED) 🚨
-        // ==========================================
-        // Replace 'null' below with your actual Firebase config object to run on Netlify
-        // ==========================================
-        // 🚨 FIREBASE CONFIGURATION (REQUIRED) 🚨
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyBgBs031rQtEDtlXqYHJDkKXhf6UsbC2S0",
-            authDomain: "attendance-app-project-3840d.firebaseapp.com",
-            projectId: "attendance-app-project-3840d",
-            storageBucket: "attendance-app-project-3840d.firebasestorage.app",
-            messagingSenderId: "981609675819",
-            appId: "1:981609675819:web:c40cf6d4014a8134fbfe6e",
-            measurementId: "G-E7RLT6L99T"
-        };
-        
-        // Environment variables setup
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'demo-attendance-app';
-        
-        // Globals
-        let appInstance, auth, db, currentUser;
-        
-        // Ensure QRCode library is loaded before creating instance
-        let qrCodeInstance = null;
-
-        // Base Firestore paths (Strict path rule compliance)
-        const getCollection = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
-        const getDocRef = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
-
-        // --- UI Helper Module ---
-        window.ui = {
-            showToast: (msg, type = 'success') => {
-                const container = document.getElementById('toast-container');
-                const toast = document.createElement('div');
-                const colors = type === 'success' ? 'bg-green-600 text-white' : (type === 'error' ? 'bg-red-600 text-white' : 'bg-slate-800 text-white');
-                toast.className = `${colors} px-4 py-3 rounded shadow-lg transform transition-all duration-300 translate-y-[-100%] opacity-0 flex items-center gap-2`;
-                
-                let icon = type === 'success' 
-                    ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
-                    : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
-                
-                toast.innerHTML = `${icon} <span class="font-medium text-sm">${msg}</span>`;
-                container.appendChild(toast);
-                
-                // Animate in
-                setTimeout(() => { toast.classList.remove('translate-y-[-100%]', 'opacity-0'); }, 10);
-                
-                // Animate out and remove
-                setTimeout(() => {
-                    toast.classList.add('opacity-0');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            },
-            
-            showLoader: (show) => {
-                document.getElementById('global-loader').style.display = show ? 'flex' : 'none';
-            },
-
-            setMode: (mode) => {
-                document.getElementById('teacher-view').style.display = mode === 'teacher' ? 'block' : 'none';
-                document.getElementById('student-view').style.display = mode === 'student' ? 'block' : 'none';
-                
-                const roleBadge = document.getElementById('role-badge');
-                document.getElementById('user-info').classList.remove('hidden');
-                
-                if (mode === 'student') {
-                    roleBadge.textContent = 'Student Mode';
-                    roleBadge.className = 'px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold';
-                }
-            },
-
-            switchTeacherTab: (tabId) => {
-                const panels = ['schedule', 'dashboard', 'new-class', 'active-session', 'history'];
-                panels.forEach(p => {
-                    const el = document.getElementById(`panel-${p}`);
-                    if (el) el.classList.add('hidden');
-                    
-                    const tab = document.getElementById(`tab-${p}`);
-                    if (tab) tab.className = 'px-4 py-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium transition-colors';
-                });
-                
-                if (tabId === 'active-session') {
-                    document.getElementById('panel-active-session').classList.remove('hidden');
-                } else {
-                    document.getElementById(`panel-${tabId}`).classList.remove('hidden');
-                    document.getElementById(`tab-${tabId}`).className = 'px-4 py-2 border-b-2 border-indigo-600 text-indigo-600 font-medium transition-colors';
-                }
-            },
-
-            setButtonLoading: (btnId, isLoading, originalText = 'Save') => {
-                const btn = document.getElementById(btnId);
-                if (isLoading) {
-                    btn.disabled = true;
-                    btn.innerHTML = `<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>`;
-                    btn.classList.add('opacity-75', 'cursor-not-allowed');
-                } else {
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                }
-            },
-
-            copySessionLink: () => {
-                const input = document.getElementById('session-link');
-                input.select();
-                try {
-                    document.execCommand('copy');
-                    ui.showToast('Link copied to clipboard');
-                } catch(e) {
-                    ui.showToast('Failed to copy link', 'error');
-                }
-                window.getSelection().removeAllRanges();
-            },
-
-            // Calculates distance in meters between two coordinates using Haversine formula
-            getDistance: (lat1, lon1, lat2, lon2) => {
-                const R = 6371e3; // Earth radius in meters
-                const p1 = lat1 * Math.PI/180;
-                const p2 = lat2 * Math.PI/180;
-                const dp = (lat2-lat1) * Math.PI/180;
-                const dl = (lon2-lon1) * Math.PI/180;
-                const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                return R * c;
-            }
-        };
-
-        // --- Main App Logic Module ---
-        window.app = {
-            state: {
-                classes: [],
-                holidays: [],
-                activeSessionUnsubscribe: null,
-                currentSessionData: null,
-                currentClassStudents: []
-            },
-
-            init: async () => {
-                if (!firebaseConfig) {
-                    ui.showLoader(false);
-                    document.body.innerHTML = `
-                        <div class="max-w-2xl mx-auto p-8 mt-12 bg-white rounded-xl shadow-lg border border-red-200">
-                            <h2 class="text-2xl font-bold text-red-600 mb-4">⚠️ Database Configuration Missing</h2>
-                            <p class="text-slate-700 mb-4">Because you are hosting this app on your own domain/Netlify, it needs its own database to sync live attendance between your screen and the students' phones.</p>
-                            <div class="bg-slate-50 p-5 rounded-lg text-sm text-slate-800 space-y-3 mb-6 border border-slate-200">
-                                <p class="font-bold text-base">How to fix this (It's free & takes 3 minutes):</p>
-                                <ol class="list-decimal pl-5 space-y-2">
-                                    <li>Go to the <a href="https://console.firebase.google.com/" target="_blank" class="text-indigo-600 hover:underline font-semibold">Firebase Console</a> and click <b>Create a project</b>.</li>
-                                    <li>Once created, click the <b>&lt;/&gt; Web</b> icon on the dashboard to add an app.</li>
-                                    <li>Copy the <code>firebaseConfig</code> code block they give you.</li>
-                                    <li>Open your <code>index.html</code> file in a text editor (like Notepad or VS Code).</li>
-                                    <li>Find <code>const myFirebaseConfig = null;</code> and replace <code>null</code> with your copied object.</li>
-                                    <li>In the Firebase sidebar, go to <b>Authentication</b>, click Get Started, and enable <b>Anonymous</b> sign-in.</li>
-                                    <li>Go to <b>Firestore Database</b>, click Create database, and choose <b>Start in Test Mode</b>.</li>
-                                    <li>Save your <code>index.html</code> and drag the folder into Netlify Drop again!</li>
-                                </ol>
-                            </div>
-                        </div>
-                    `;
-                    return;
-                }
-
-                appInstance = initializeApp(firebaseConfig);
-                auth = getAuth(appInstance);
-                db = getFirestore(appInstance);
-
-                try {
-                    // Auth requirement rule enforced
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    currentUser = auth.currentUser;
-                    
-                    app.routeRequest();
-                } catch (error) {
-                    console.error("Auth error:", error);
-                    ui.showToast("Authentication failed", "error");
-                    ui.showLoader(false);
-                }
-            },
-
-            routeRequest: () => {
-                const urlParams = new URLSearchParams(window.location.search);
-                const sessionId = urlParams.get('s');
-
-                ui.showLoader(false);
-                if (sessionId) {
-                    ui.setMode('student');
-                    app.initStudentView(sessionId);
-                } else {
-                    ui.setMode('teacher');
-                    app.loadTeacherClasses();
-                }
-            },
-
-            // ================== TEACHER LOGIC ==================
-
-            TIMETABLE: {
-                1: [ // Monday
-                    { time: "08:50 - 09:40", subject: "OOPS", room: "KC-408", section: "CSE-26" },
-                    { time: "10:40 - 12:20", subject: "3rd Year DOMAIN TRAINING (Networking)", room: "KC-402", section: "Domain" },
-                    { time: "02:00 - 02:50", subject: "OOPS", room: "KC-405", section: "CSE-21" }
-                ],
-                2: [ // Tuesday
-                    { time: "08:50 - 09:40", subject: "OOPS", room: "KC-402", section: "CSE-26" },
-                    { time: "12:20 - 01:10", subject: "OOPS LAB 10 (G2)", room: "Lab", section: "CSE-26" },
-                    { time: "02:00 - 02:50", subject: "OOPS LAB 10 (G2)", room: "Lab", section: "CSE-26" }
-                ],
-                3: [ // Wednesday
-                    { time: "08:50 - 09:40", subject: "OOPS", room: "KC-405", section: "CSE-21" },
-                    { time: "11:30 - 12:20", subject: "DSTL", room: "KC-407", section: "CSE-22" },
-                    { time: "12:20 - 01:10", subject: "OOPS LAB 10 (G1)", room: "Lab", section: "CSE-26" },
-                    { time: "02:00 - 02:50", subject: "OOPS LAB 10 (G1)", room: "Lab", section: "CSE-26" },
-                    { time: "03:40 - 04:30", subject: "DSTL", room: "KC-407", section: "CSE-22" }
-                ],
-                4: [ // Thursday
-                    { time: "08:50 - 09:40", subject: "OOPS", room: "KC-405", section: "CSE-21" },
-                    { time: "10:40 - 11:30", subject: "3rd Year DOMAIN TRAINING (Networking)", room: "KC-402", section: "Domain" },
-                    { time: "11:30 - 12:20", subject: "OOPS", room: "KC-404", section: "CSE-26" },
-                    { time: "02:50 - 03:40", subject: "OOPS", room: "KC-404", section: "CSE-26" },
-                    { time: "03:40 - 04:30", subject: "OOPS", room: "KC-405", section: "CSE-21" }
-                ],
-                5: [ // Friday
-                    { time: "10:40 - 11:30", subject: "DSTL", room: "KC-407", section: "CSE-22" },
-                    { time: "02:00 - 02:50", subject: "DSTL", room: "KC-407", section: "CSE-22" },
-                    { time: "02:50 - 03:40", subject: "DSTL", room: "KC-407", section: "CSE-22" }
-                ],
-                0: [], 6: [] // Sun, Sat
-            },
-
-            loadTeacherClasses: async () => {
-                try {
-                    // Fetch all and filter in memory (Rule 2: No complex queries)
-                    const querySnapshot = await getDocs(getCollection('classes'));
-                    const allDocs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
-                    // Filter by current teacher ID
-                    app.state.classes = allDocs.filter(c => c.teacherId === currentUser.uid);
-                    
-                    // Fetch holidays
-                    const holidayRef = getDocRef('settings', `holidays_${currentUser.uid}`);
-                    const holidaySnap = await getDoc(holidayRef);
-                    if (holidaySnap.exists()) {
-                        app.state.holidays = holidaySnap.data().dates || [];
-                    }
-
-                    // Setup schedule date picker to today
-                    const today = new Date();
-                    const offset = today.getTimezoneOffset() * 60000;
-                    const localISOTime = (new Date(today - offset)).toISOString().split('T')[0];
-                    document.getElementById('schedule-date').value = localISOTime;
-
-                    app.renderClassesList();
-                    app.renderSchedule();
-                    ui.switchTeacherTab('schedule');
-                } catch (err) {
-                    console.error("Error loading classes:", err);
-                    ui.showToast("Failed to load classes.", "error");
-                }
-            },
-
-            toggleHoliday: async (isHoliday) => {
-                const dateVal = document.getElementById('schedule-date').value;
-                if (!dateVal) return;
-
-                if (isHoliday && !app.state.holidays.includes(dateVal)) {
-                    app.state.holidays.push(dateVal);
-                } else if (!isHoliday) {
-                    app.state.holidays = app.state.holidays.filter(d => d !== dateVal);
-                }
-
-                try {
-                    const holidayRef = getDocRef('settings', `holidays_${currentUser.uid}`);
-                    await setDoc(holidayRef, { dates: app.state.holidays }, { merge: true });
-                    ui.showToast(isHoliday ? 'Day marked as holiday' : 'Holiday removed');
-                    app.renderSchedule();
-                } catch(e) {
-                    ui.showToast('Error saving holiday setting', 'error');
-                }
-            },
-
-            renderSchedule: () => {
-                const dateVal = document.getElementById('schedule-date').value;
-                if (!dateVal) return;
-
-                const selectedDate = new Date(dateVal);
-                const dayOfWeek = selectedDate.getDay();
-                const list = document.getElementById('schedule-list');
-                const holidayToggle = document.getElementById('toggle-holiday');
-                const holidayLabel = document.getElementById('holiday-label');
-
-                list.innerHTML = '';
-
-                // Check holiday
-                const isHoliday = app.state.holidays.includes(dateVal);
-                holidayToggle.checked = isHoliday;
-                
-                if (isHoliday) {
-                    holidayLabel.textContent = "It's a Holiday! 🎉";
-                    holidayLabel.className = "text-red-600 font-bold text-sm";
-                    list.innerHTML = `
-                        <div class="text-center py-12 bg-red-50 rounded-xl border border-red-100">
-                            <span class="text-4xl block mb-3">🏝️</span>
-                            <h3 class="text-lg font-bold text-red-800">Holiday</h3>
-                            <p class="text-red-600 text-sm mt-1">No classes scheduled for this day.</p>
-                        </div>`;
-                    return;
-                }
-
-                holidayLabel.textContent = "Mark as Holiday";
-                holidayLabel.className = "text-slate-600 font-medium text-sm";
-
-                const todaysClasses = app.TIMETABLE[dayOfWeek];
-
-                if (!todaysClasses || todaysClasses.length === 0) {
-                    list.innerHTML = `
-                        <div class="text-center py-12 bg-white rounded-xl border border-slate-200">
-                            <span class="text-4xl block mb-3">☕</span>
-                            <h3 class="text-sm font-semibold text-slate-900">No Classes Scheduled</h3>
-                            <p class="mt-1 text-sm text-slate-500">Enjoy your free day!</p>
-                        </div>`;
-                    return;
-                }
-
-                todaysClasses.forEach(c => {
-                    // Try to match timetable section with the user's saved class names
-                    const normalizedSection = c.section.replace('-', ' '); 
-                    const matchingClass = app.state.classes.find(sc => 
-                        sc.name.toLowerCase().includes(normalizedSection.toLowerCase()) || 
-                        sc.name.toLowerCase().includes(c.section.toLowerCase())
-                    );
-
-                    const card = document.createElement('div');
-                    card.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-indigo-300 transition-colors gap-4';
-                    
-                    let actionButton = '';
-                    if (matchingClass) {
-                        actionButton = `
-                            <button onclick="app.startSession('${matchingClass.id}')" class="bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>
-                                Start Session
-                            </button>
-                        `;
-                    } else {
-                        actionButton = `
-                            <button onclick="ui.switchTeacherTab('new-class')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-4 py-2.5 rounded-lg text-xs font-semibold w-full sm:w-auto shrink-0 transition-colors">
-                                + Add "${c.section}" List First
-                            </button>
-                        `;
-                    }
-
-                    card.innerHTML = `
-                        <div class="flex gap-4 items-center">
-                            <div class="bg-slate-50 text-slate-700 p-2 rounded-lg text-center min-w-[110px] border border-slate-200">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Time</div>
-                                <div class="text-sm font-mono font-medium">${c.time}</div>
-                            </div>
-                            <div>
-                                <h4 class="text-lg font-bold text-slate-900">${c.subject} <span class="text-sm font-medium text-slate-500 ml-1">(${c.section})</span></h4>
-                                <div class="flex items-center gap-2 mt-1 text-sm text-slate-500">
-                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                    Room: ${c.room}
-                                </div>
-                            </div>
-                        </div>
-                        ${actionButton}
-                    `;
-                    list.appendChild(card);
-                });
-            },
-
-            renderClassesList: () => {
-                const list = document.getElementById('classes-list');
-                const noMsg = document.getElementById('no-classes-msg');
-                
-                list.innerHTML = '';
-                
-                if (app.state.classes.length === 0) {
-                    noMsg.classList.remove('hidden');
-                    return;
-                }
-                
-                noMsg.classList.add('hidden');
-                
-                app.state.classes.forEach(c => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between';
-                    card.innerHTML = `
-                        <div>
-                            <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-8 h-8 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
-                                        ${c.name.substring(0, 2).toUpperCase()}
-                                    </div>
-                                    <h3 class="text-lg font-bold text-slate-800">${c.name}</h3>
-                                </div>
-                                <button onclick="app.deleteClass('${c.id}')" class="text-slate-400 hover:text-red-500 transition-colors p-1" title="Delete Class">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </div>
-                            <p class="text-sm text-slate-500 mb-4 flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                                ${c.students.length} Students Enrolled
-                            </p>
-                        </div>
-                        <button onclick="app.startSession('${c.id}')" class="w-full bg-slate-50 hover:bg-indigo-50 text-indigo-600 border border-slate-200 hover:border-indigo-200 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            Start Session
-                        </button>
-                    `;
-                    list.appendChild(card);
-                });
-            },
-
-            loadHistory: async () => {
-                ui.showLoader(true);
-                try {
-                    const querySnapshot = await getDocs(getCollection('sessions'));
-                    const allSessions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
-                    // Filter for ended sessions and sort newest to oldest
-                    app.state.history = allSessions
-                        .filter(s => s.teacherId === currentUser.uid && s.active === false)
-                        .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
-                        
-                    app.renderHistoryList();
-                } catch (err) {
-                    ui.showToast("Failed to load history.", "error");
-                } finally {
-                    ui.showLoader(false);
-                }
-            },
-
-            renderHistoryList: () => {
-                const list = document.getElementById('history-list');
-                list.innerHTML = '';
-                
-                if (!app.state.history || app.state.history.length === 0) {
-                    list.innerHTML = `<div class="col-span-full p-8 text-center text-slate-500 bg-white rounded-xl border border-slate-200">No past sessions found yet.</div>`;
-                    return;
-                }
-                
-                app.state.history.forEach(session => {
-                    const dateObj = new Date(session.startTime);
-                    const presentCount = session.presentMap ? Object.keys(session.presentMap).length : 0;
-                    
-                    const card = document.createElement('div');
-                    card.className = 'bg-white border border-slate-200 rounded-xl p-4 flex justify-between items-center shadow-sm hover:border-indigo-400 transition-colors';
-                    
-                    card.innerHTML = `
-                        <div class="cursor-pointer flex-grow" onclick="app.viewHistoryDetail('${session.id}')">
-                            <h4 class="font-bold text-slate-800">${session.className}</h4>
-                            <p class="text-xs text-slate-500 mt-1">📅 ${dateObj.toLocaleDateString()} at ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="text-right bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 cursor-pointer" onclick="app.viewHistoryDetail('${session.id}')">
-                                <span class="block text-lg font-bold text-indigo-600">${presentCount}</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-400">Present</span>
-                            </div>
-                            <button onclick="app.deleteHistorySession('${session.id}')" class="text-slate-400 hover:text-red-500 transition-colors p-1" title="Delete Session">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    `;
-                    list.appendChild(card);
-                });
-            },
-            deleteHistorySession: async (sessionId) => {
-                if (!confirm("Are you sure you want to delete this session history? This action cannot be undone.")) return;
-
-                try {
-                    // Delete the session record from Firebase Database
-                    await deleteDoc(getDocRef('sessions', sessionId));
-
-                    // Remove it from the local screen memory
-                    app.state.history = app.state.history.filter(s => s.id !== sessionId);
-                    
-                    // Update the UI
-                    ui.showToast('Session history deleted');
-                    app.renderHistoryList();
-                    
-                    // Close the detail panel if the deleted session was currently open
-                    document.getElementById('history-detail').classList.add('hidden');
-                } catch (error) {
-                    console.error("Error deleting session:", error);
-                    ui.showToast('Failed to delete session history', 'error');
-                }
-            },
-
-            overrideAttendance: async (sessionId, rollNumber) => {
-                if (!confirm(`Mark roll number ${rollNumber} as Present (Manual Override)?`)) return;
-                
-                try {
-                    const sessionRef = getDocRef('sessions', sessionId);
-                    
-                    // Update Firebase with an 'override' status
-                    await updateDoc(sessionRef, {
-                        [`presentMap.${rollNumber}`]: { ts: Date.now(), status: 'override', dist: null }
-                    });
-                    
-                    ui.showToast('Attendance updated successfully!');
-                    
-                    // Update local state instantly without reloading
-                    const session = app.state.history.find(s => s.id === sessionId);
-                    if (!session.presentMap) session.presentMap = {};
-                    session.presentMap[rollNumber] = { ts: Date.now(), status: 'override', dist: null };
-                    
-                    // Refresh UI
-                    app.renderHistoryList(); 
-                    app.viewHistoryDetail(sessionId); 
-                } catch (error) {
-                    console.error("Error overriding attendance:", error);
-                    ui.showToast('Failed to update attendance', 'error');
-                }
-            },
-            viewHistoryDetail: (sessionId) => {
-                const session = app.state.history.find(s => s.id === sessionId);
-                const classData = app.state.classes.find(c => c.id === session.classId);
-                if (!session || !classData) return;
-                
-                document.getElementById('history-detail').classList.remove('hidden');
-                document.getElementById('history-detail-title').textContent = `${session.className} - ${new Date(session.startTime).toLocaleDateString()}`;
-                
-                const tbody = document.getElementById('history-roster-body');
-                tbody.innerHTML = '';
-                
-                const presentMap = session.presentMap || {};
-                
-                // Map all students, extract location data AND email
-                let roster = classData.students.map(s => {
-                    const record = presentMap[s.roll];
-                    return {
-                        ...s,
-                        present: !!record,
-                        locStatus: record ? record.status : null,
-                        dist: record ? record.dist : null,
-                        email: record ? record.email : ''
-                    };
-                }).sort((a, b) => a.roll.localeCompare(b.roll));
-                
-                roster.forEach(s => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors';
-
-                    // Determine if we should show the manual override button
-                    let overrideBtn = '';
-                    if (!s.present || s.locStatus === 'remote' || s.locStatus === 'denied') {
-                        overrideBtn = `<button onclick="app.overrideAttendance('${session.id}', '${s.roll}')" class="ml-2 mt-1 sm:mt-0 text-[10px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-1 rounded border border-indigo-200 transition-colors font-bold uppercase tracking-wider block sm:inline-block">Override</button>`;
-                    }
-
-                    const badge = s.present 
-                        ? '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold border border-green-200 shadow-sm">Present</span>' 
-                        : '<span class="px-2 py-1 bg-slate-100 text-slate-500 rounded text-xs font-bold border border-slate-200">Absent</span>';
-                        
-                    let locBadge = '<span class="text-slate-300">-</span>';
-                    if (s.present) {
-                        if (s.locStatus === 'verified') locBadge = `<span class="text-green-600 text-xs font-semibold bg-green-50 px-2 py-1 rounded">📍 In Class</span>`;
-                        else if (s.locStatus === 'remote') locBadge = `<span class="text-red-600 text-xs font-bold bg-red-50 px-2 py-1 rounded">🚨 Remote (${s.dist}m)</span>`;
-                        else if (s.locStatus === 'denied') locBadge = `<span class="text-orange-600 text-xs font-semibold bg-orange-50 px-2 py-1 rounded">⚠️ Denied</span>`;
-                        else if (s.locStatus === 'override') locBadge = `<span class="text-indigo-600 text-xs font-semibold bg-indigo-50 px-2 py-1 rounded">👨‍🏫 Manual Override</span>`;
-                        else locBadge = `<span class="text-slate-400 text-xs">Untracked</span>`;
-                    }
-                        
-                    tr.innerHTML = `
-                        <td class="py-3 px-3 text-sm font-mono text-slate-600">${s.roll}</td>
-                        <td class="py-3 px-3 text-sm font-medium text-slate-900">${s.name}</td>
-                        <td class="py-3 px-3 text-sm text-slate-500 truncate max-w-[120px]" title="${s.email || ''}">${s.email || '-'}</td>
-                        <td class="py-3 px-3 text-center">${locBadge}</td>
-                        <td class="py-3 px-3 text-right whitespace-nowrap">${badge}${overrideBtn}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            },
-            
-            handleCreateClass: async (e) => {
-                e.preventDefault();
-                const nameInput = document.getElementById('class-name').value.trim();
-                const textInput = document.getElementById('student-list').value.trim();
-                
-                if (!nameInput || !textInput) {
-                    ui.showToast('Please fill all fields', 'error');
-                    return;
-                }
-
-                // Parse students
-                const lines = textInput.split('\n');
-                const students = [];
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
-                    
-                    const parts = line.split(',');
-                    if (parts.length < 2) {
-                        ui.showToast(`Error on line ${i+1}: Format must be 'Roll, Name'`, 'error');
-                        return;
-                    }
-                    
-                    students.push({
-                        roll: parts[0].trim(),
-                        name: parts.slice(1).join(',').trim() // In case name has a comma
-                    });
-                }
-
-                ui.setButtonLoading('btn-save-class', true, 'Save Class');
-
-                try {
-                    const classData = {
-                        name: nameInput,
-                        teacherId: currentUser.uid,
-                        students: students,
-                        createdAt: new Date().toISOString()
-                    };
-
-                    const docRef = await addDoc(getCollection('classes'), classData);
-                    classData.id = docRef.id;
-                    app.state.classes.unshift(classData);
-                    
-                    ui.showToast('Class created successfully!');
-                    document.getElementById('form-new-class').reset();
-                    app.renderClassesList();
-                    app.renderSchedule();
-                    ui.switchTeacherTab('schedule');
-                } catch (error) {
-                    console.error("Error adding class: ", error);
-                    ui.showToast('Failed to save class', 'error');
-                } finally {
-                    ui.setButtonLoading('btn-save-class', false, 'Save Class');
-                }
-            },
-
-            deleteClass: async (classId) => {
-                // Ask for confirmation before deleting
-                if (!confirm("Are you sure you want to delete this class? This action cannot be undone.")) return;
-
-                try {
-                    // 1. Delete from Firebase Database
-                    await deleteDoc(getDocRef('classes', classId));
-
-                    // 2. Remove it from the local screen memory
-                    app.state.classes = app.state.classes.filter(c => c.id !== classId);
-                    
-                    // 3. Update the UI
-                    ui.showToast('Class deleted successfully');
-                    app.renderClassesList();
-                    app.renderSchedule();
-                } catch (error) {
-                    console.error("Error deleting class: ", error);
-                    ui.showToast('Failed to delete class', 'error');
-                }
-            },
-
-            startSession: async (classId) => {
-                const classData = app.state.classes.find(c => c.id === classId);
-                if (!classData) return;
-
-                const useGeo = document.getElementById('toggle-geo').checked;
-                app.state.currentClassStudents = classData.students;
-
-                const initSession = async (teacherLocation = null) => {
-                    try {
-                        const sessionData = {
-                            classId: classId,
-                            className: classData.name,
-                            teacherId: currentUser.uid,
-                            startTime: new Date().toISOString(),
-                            active: true,
-                            teacherLocation: teacherLocation, // null if disabled or failed
-                            presentMap: {}
-                        };
-
-                        const docRef = await addDoc(getCollection('sessions'), sessionData);
-                        const sessionId = docRef.id;
-
-                        // Switch UI
-                        ui.switchTeacherTab('active-session');
-                        document.getElementById('active-session-title').textContent = `${classData.name} - Live Session`;
-                        if (teacherLocation) {
-                            document.getElementById('active-session-title').innerHTML += ` <span class="text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full ml-2 align-middle">📍 Geo-Fence Active</span>`;
-                        }
-
-                        // Generate QR & Link
-                        const currentUrl = window.location.href.split('?')[0];
-                        const sessionUrl = `${currentUrl}?s=${sessionId}`;
-                        document.getElementById('session-link').value = sessionUrl;
-                        
-                        const qrContainer = document.getElementById('qrcode');
-                        qrContainer.innerHTML = ''; // clear old
-                        
-                        if (qrCodeInstance) {
-                             qrCodeInstance.clear();
-                             qrCodeInstance.makeCode(sessionUrl);
-                        } else {
-                            qrCodeInstance = new QRCode(qrContainer, {
-                                text: sessionUrl,
-                                width: 200,
-                                height: 200,
-                                colorDark : "#0f172a",
-                                colorLight : "#ffffff",
-                                correctLevel : QRCode.CorrectLevel.H
-                            });
-                        }
-
-                        // Listen to live attendance updates
-                        app.listenToSession(sessionId);
-
-                    } catch (err) {
-                        console.error("Error starting session:", err);
-                        ui.showToast("Failed to start session", "error");
-                    }
-                };
-
-                if (useGeo) {
-                    ui.showLoader(true);
-                    
-                    // Check if browser supports/allows geolocation (Requires HTTPS)
-                    if (!navigator.geolocation) {
-                        ui.showLoader(false);
-                        ui.showToast("Geo-fencing requires HTTPS deployment. Starting without it.", "error");
-                        initSession(null);
-                        return;
-                    }
-
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => {
-                            ui.showLoader(false);
-                            initSession({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                        },
-                        (err) => {
-                            ui.showLoader(false);
-                            ui.showToast("Location denied or unavailable. Starting without Geo-Fence.", "error");
-                            initSession(null); // Fallback to normal session
-                        },
-                        { enableHighAccuracy: true, timeout: 10000 }
-                    );
-                } else {
-                    initSession(null);
-                }
-            },
-
-            listenToSession: (sessionId) => {
-                const sessionRef = getDocRef('sessions', sessionId);
-                
-                // Unsubscribe from previous if exists
-                if (app.state.activeSessionUnsubscribe) {
-                    app.state.activeSessionUnsubscribe();
-                }
-
-                app.state.activeSessionUnsubscribe = onSnapshot(sessionRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        app.state.currentSessionData = { id: docSnap.id, ...data };
-                        app.renderLiveRoster();
-                    }
-                }, (error) => {
-                    console.error("Session snapshot error:", error);
-                    ui.showToast("Lost connection to live session", "error");
-                });
-            },
-
-            endSession: async () => {
-                if (!app.state.currentSessionData) return;
-                
-                try {
-                    const sessionRef = getDocRef('sessions', app.state.currentSessionData.id);
-                    await updateDoc(sessionRef, { active: false });
-                    
-                    if (app.state.activeSessionUnsubscribe) {
-                        app.state.activeSessionUnsubscribe();
-                        app.state.activeSessionUnsubscribe = null;
-                    }
-                    
-                    ui.showToast("Session ended successfully");
-                    ui.switchTeacherTab('dashboard');
-                } catch (err) {
-                    console.error("Error ending session:", err);
-                    ui.showToast("Failed to end session", "error");
-                }
-            },
-
-            renderLiveRoster: () => {
-                const tbody = document.getElementById('live-roster-body');
-                tbody.innerHTML = '';
-
-                const students = app.state.currentClassStudents;
-                const presentMap = app.state.currentSessionData.presentMap || {};
-                
-                let presentCount = 0;
-
-                // Sort: Present first (most recent), then absent alphabetically
-                const roster = students.map(s => {
-                    const record = presentMap[s.roll];
-                    const isPresent = !!record;
-                    const timestamp = record ? (typeof record === 'number' ? record : record.ts) : 0;
-                    const status = record ? (record.status || 'untracked') : null;
-                    const dist = record ? record.dist : null;
-                    
-                    if (isPresent) presentCount++;
-                    return { ...s, present: isPresent, timestamp, status, dist };
-                }).sort((a, b) => {
-                    if (a.present && b.present) return b.timestamp - a.timestamp;
-                    if (a.present) return -1;
-                    if (b.present) return 1;
-                    return a.name.localeCompare(b.name);
-                });
-
-                document.getElementById('count-present').textContent = presentCount;
-                document.getElementById('count-total').textContent = students.length;
-
-                roster.forEach(s => {
-                    const tr = document.createElement('tr');
-                    tr.className = `transition-colors ${s.present ? (s.status === 'remote' || s.status === 'denied' ? 'bg-orange-50/50' : 'bg-green-50/50') : 'bg-white'}`;
-                    
-                    const timeStr = s.present ? new Date(s.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-';
-                    const statusBadge = s.present 
-                        ? `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"><div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>Present</span>`
-                        : `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500"><div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>Absent</span>`;
-
-                    let locBadge = '<span class="text-slate-300">-</span>';
-                    if (s.present) {
-                        if (s.status === 'verified') locBadge = `<span class="text-green-600 text-xs font-medium" title="${s.dist}m away">📍 In Class</span>`;
-                        else if (s.status === 'remote') locBadge = `<span class="text-red-600 text-xs font-bold" title="${s.dist}m away">🚨 Remote (${s.dist}m)</span>`;
-                        else if (s.status === 'denied') locBadge = `<span class="text-orange-600 text-xs font-medium">⚠️ Loc Denied</span>`;
-                        else locBadge = `<span class="text-slate-400 text-xs">Untracked</span>`;
-                    }
-
-                    tr.innerHTML = `
-                        <td class="py-3 px-4 whitespace-nowrap">${statusBadge}</td>
-                        <td class="py-3 px-4 whitespace-nowrap text-sm font-mono text-slate-600">${s.roll}</td>
-                        <td class="py-3 px-4 whitespace-nowrap text-sm font-medium text-slate-900">${s.name}</td>
-                        <td class="py-3 px-4 whitespace-nowrap text-center">${locBadge}</td>
-                        <td class="py-3 px-4 whitespace-nowrap text-sm text-slate-500 text-right">${timeStr}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            },
-
-            // ================== STUDENT LOGIC ==================
-            
-            initStudentView: async (sessionId) => {
-                // 1. FRONT DOOR LOCK: Check if this browser already submitted today
-                if (localStorage.getItem(`attendance_${sessionId}`)) {
-                    app.showStudentError("You have already marked attendance for this session from this device.");
-                    return;
-                }
-
-                const sessionRef = getDocRef('sessions', sessionId);
-                
-                try {
-                    const sessionSnap = await getDoc(sessionRef);
-                    
-                    if (!sessionSnap.exists()) {
-                        app.showStudentError("Invalid session code.");
-                        return;
-                    }
-
-                    const sessionData = sessionSnap.data();
-                    if (!sessionData.active) {
-                        app.showStudentError("This attendance session has ended.");
-                        return;
-                    }
-
-                    // Session valid, load class details to get students
-                    document.getElementById('student-class-name').textContent = sessionData.className;
-                    app.state.currentSessionData = { id: sessionId, ...sessionData };
-                    
-                    await app.loadStudentsForDropdown(sessionData.classId);
-
-                } catch (err) {
-                    console.error("Error loading student view:", err);
-                    app.showStudentError("Connection error. Please try scanning again.");
-                }
-            },
-
-            loadStudentsForDropdown: async (classId) => {
-                const classRef = getDocRef('classes', classId);
-                try {
-                    const classSnap = await getDoc(classRef);
-                    if (!classSnap.exists()) {
-                        app.showStudentError("Class data not found.");
-                        return;
-                    }
-                    
-                    const classData = classSnap.data();
-                    const students = classData.students || [];
-                    
-                    // Sort alphabetically
-                    students.sort((a, b) => a.name.localeCompare(b.name));
-
-                    const select = document.getElementById('student-select');
-                    select.innerHTML = '<option value="" disabled selected>Select your name & roll...</option>';
-                    
-                    students.forEach(s => {
-                        const opt = document.createElement('option');
-                        opt.value = s.roll;
-                        opt.textContent = `${s.roll} - ${s.name}`;
-                        select.appendChild(opt);
-                    });
-
-                } catch (err) {
-                    console.error("Error loading students list:", err);
-                    app.showStudentError("Failed to load student list.");
-                }
-            },
-
-            handleMarkAttendance: async (e) => {
-                e.preventDefault();
-                const select = document.getElementById('student-select');
-                const rollNumber = select.value;
-                const emailInput = document.getElementById('student-email').value.trim().toLowerCase();
-                
-                if (!rollNumber) {
-                    ui.showToast("Please select your name", "error");
-                    return;
-                }
-                if (!emailInput) {
-                    ui.showToast("Please enter your email", "error");
-                    return;
-                }
-
-                const sessionId = app.state.currentSessionData.id;
-                const sessionRef = getDocRef('sessions', sessionId);
-                
-                ui.setButtonLoading('btn-mark', true, 'Verifying...');
-
-                const submitRecord = async (status, distance = null) => {
-                    try {
-                        const snap = await getDoc(sessionRef);
-                        if (!snap.exists() || !snap.data().active) {
-                            ui.setButtonLoading('btn-mark', false, 'Submit Attendance');
-                            app.showStudentError("This session was ended by the teacher.");
-                            return;
-                        }
-
-                        const currentPresentMap = snap.data().presentMap || {};
-                        const deviceUid = currentUser.uid; // Get the unique device signature
-                        
-                        // STRICT SCAM PREVENTION: Check for duplicate Emails OR duplicate Devices
-                        for (const [roll, record] of Object.entries(currentPresentMap)) {
-                            if (record.email === emailInput && roll !== rollNumber) {
-                                ui.setButtonLoading('btn-mark', false, 'Submit Attendance');
-                                ui.showToast("Attendance has been marked by this email already", "error");
-                                return;
-                            }
-                            if (record.uid === deviceUid && roll !== rollNumber) {
-                                ui.setButtonLoading('btn-mark', false, 'Submit Attendance');
-                                ui.showToast("This device has already been used to mark attendance today.", "error");
-                                return;
-                            }
-                        }
-
-                        // Store timestamp, location status, email, AND device signature
-                        await updateDoc(sessionRef, {
-                            [`presentMap.${rollNumber}`]: { 
-                                ts: Date.now(), 
-                                status, 
-                                dist: distance ? Math.round(distance) : null, 
-                                email: emailInput,
-                                uid: deviceUid 
-                            }
-                        });
-
-                        // Lock the browser so they can't simply refresh the page
-                        localStorage.setItem(`attendance_${sessionId}`, 'true');
-
-                        document.getElementById('form-student-mark').style.display = 'none';
-                        document.getElementById('student-success').classList.remove('hidden');
-
-                    } catch (err) {
-                        console.error("Error marking attendance:", err);
-                        ui.showToast("Failed to record. Please try again.", "error");
-                        ui.setButtonLoading('btn-mark', false, 'Submit Attendance');
-                    }
-                };
-
-                const teacherLoc = app.state.currentSessionData.teacherLocation;
-
-                if (teacherLoc) {
-                    if (!navigator.geolocation) {
-                        submitRecord('untracked', null);
-                        return;
-                    }
-
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => {
-                            const dist = ui.getDistance(teacherLoc.lat, teacherLoc.lng, pos.coords.latitude, pos.coords.longitude);
-                            const status = dist <= 1500 ? 'verified' : 'remote';
-                            submitRecord(status, dist);
-                        },
-                        (err) => {
-                            ui.setButtonLoading('btn-mark', false, 'Submit Attendance');
-                            app.showStudentError("Location access is mandatory to mark attendance. Please allow location permissions in your browser and refresh the page.");
-                        },
-                        { enableHighAccuracy: true, timeout: 10000 }
-                    );
-                } else {
-                    submitRecord('untracked', null);
-                }
-            },
-
-            showStudentError: (msg) => {
-                document.getElementById('form-student-mark').style.display = 'none';
-                document.getElementById('student-success').classList.add('hidden');
-                
-                const errDiv = document.getElementById('student-error');
-                errDiv.classList.remove('hidden');
-                document.getElementById('student-error-msg').textContent = msg;
-            }
-        };
-
-        // Start initialization immediately
-        app.init();
-
-    </script>
+      </section>
+
+      <section id="detail-panel" class="card space hidden">
+        <div class="flexrow"><div><h3 id="detail-title" style="margin:0">Session details</h3><p id="detail-subtitle" class="note" style="margin:0"></p></div><div class="actions"><button id="export-csv" class="btn outline sm" type="button">Export CSV</button><button id="close-detail" class="btn outline sm" type="button">Close</button></div></div>
+        <div class="tablewrap space"><table><thead><tr><th>Roll</th><th>Name</th><th>Email</th><th>Location / Status</th><th>Attendance</th><th>Action</th></tr></thead><tbody id="detail-rows"></tbody></table></div>
+      </section>
+    </section>
+
+    <section id="student-screen" class="login hidden">
+      <div class="card"><div class="center" style="margin-bottom:25px"><span class="tag">Student attendance</span><h2 style="margin-top:16px" id="student-title">Loading session…</h2><p class="note" id="student-info"></p></div>
+        <form id="student-form" class="hidden"><div class="field"><label for="student-roll">University roll number</label><input id="student-roll" type="text" maxlength="50" autocomplete="off" required placeholder="Enter your university roll number"></div>
+          <div class="field"><label for="student-email">Email address</label><input id="student-email" type="email" required autocomplete="email" maxlength="255" placeholder="you@example.com"></div>
+          <div id="student-geo-note" class="alert warn hidden">Location permission is required for this session. Please enable GPS and approve the browser's location request.</div>
+          <button id="submit-attendance" type="submit" class="btn full">Submit attendance</button></form>
+        <div id="student-result" class="hidden"></div>
+      </div>
+    </section>
+    <div id="global-alert" role="status" aria-live="polite" class="alert hidden"></div>
+    <footer class="footer">C 4 Yourself · Attendance Tracker · GitHub Pages + Cloudflare D1</footer>
+  </main>
+<script>
+'use strict';
+const API_BASE = 'https://c4yourself-attendance-api.adityat1904.workers.dev';
+const PUBLIC_CONFIG = './data/classes.json';
+const ACTIVE_ID_KEY = 'c4y_active_session_id';
+const HOLIDAY_KEY = 'c4y_local_holidays_v1';
+const $ = id => document.getElementById(id);
+const state = { config: null, teacherKey: '', currentTab: 'schedule', rosterClassId: null, activeId: null, activeMeta: null, timer: null, detail: null, studentSessionId: null, studentSession: null, localHolidays: [] };
+const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const localDate = () => { const d=new Date(); const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; };
+function status(message, type='error') { const el=$('global-alert'); el.className=`alert ${type}`; el.textContent=message; el.classList.remove('hidden'); el.scrollIntoView({behavior:'smooth',block:'nearest'}); clearTimeout(status.timeout); status.timeout=setTimeout(()=>el.classList.add('hidden'),6000); }
+function errorBox(id,message){const el=$(id);el.textContent=message;el.classList.remove('hidden');}
+function clearError(id){$(id).classList.add('hidden');$(id).textContent='';}
+function setBusy(id,busy){$(id).disabled=busy;}
+function classById(id){ return state.config.classes.find(c=>c.id===id); }
+function isPresent(s){return !!s && ['verified','unverified','override'].includes(s.status);}
+function csvCell(s){const value=String(s??'');return /[",\n\r]/.test(value)?'"'+value.replace(/"/g,'""')+'"':value;}
+function csvDownload(filename,rows){ const csv='\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n'); const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500); }
+async function api(path,{method='GET',body,teacher=false}={}){
+  const headers={Accept:'application/json'};
+  if(body !== undefined) headers['Content-Type']='application/json';
+  if(teacher){ if(!state.teacherKey) throw Error('Teacher key missing. Please sign in again.'); headers.Authorization=`Bearer ${state.teacherKey}`; }
+  let res;
+  try{ res=await fetch(API_BASE+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'}); }
+  catch(e){ throw new Error('Cannot reach Cloudflare Worker. Check your internet connection and that the Worker is deployed.'); }
+  const content=await res.text();let data;try{data=content?JSON.parse(content):{};}catch{throw Error(`Unexpected API response (${res.status}).`);}
+  if(!res.ok)throw Error(data.error||`API request failed (${res.status}).`);
+  return data;
+}
+async function loadConfig(){
+  const res=await fetch(PUBLIC_CONFIG,{cache:'no-store'});if(!res.ok)throw Error(`Cannot load ${PUBLIC_CONFIG}. Upload it to your GitHub repository.`);
+  const cfg=await res.json(); if(!Array.isArray(cfg.classes)||!cfg.classes.length||!Array.isArray(cfg.timeSlots)||typeof cfg.timetable!=='object')throw Error('Invalid classes.json format.');
+  const ids=new Set();for(const c of cfg.classes){if(!/^[a-z0-9_-]{1,80}$/i.test(c.id)||!c.name||!c.subject||ids.has(c.id))throw Error('Invalid/duplicate class in classes.json');ids.add(c.id);}
+  for(const day of Object.values(cfg.timetable)){if(!Array.isArray(day)||day.some(entry=>!ids.has(entry.classId)))throw Error('Timetable refers to an unknown class ID.');}
+  state.config=cfg;
+}
+function showScreen(screen){ for(const id of ['login-screen','teacher-screen','student-screen']) $(id).classList.toggle('hidden',id!==screen); $('logout').classList.toggle('hidden',screen!=='teacher-screen'); }
+function nav(tab){ state.currentTab=tab;for(const id of ['schedule','classes','history']) $('tab-'+id).classList.toggle('hidden',id!==tab);
+  document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab)); $('active-panel').classList.add('hidden'); $('detail-panel').classList.add('hidden');stopPolling();
+  if(tab==='classes')loadRosterCards();if(tab==='history')loadHistory(); }
+function initTeacher(){ showScreen('teacher-screen'); $('schedule-date').value=localDate();
+  const select=$('session-class');select.innerHTML=state.config.classes.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)} — ${escapeHtml(c.subject)}</option>`).join('');
+  try{ state.localHolidays=JSON.parse(localStorage.getItem(HOLIDAY_KEY)||'[]');if(!Array.isArray(state.localHolidays))state.localHolidays=[];}catch{state.localHolidays=[];}
+  updateSlotOptions();renderDaily();nav('schedule');
+  const previous=sessionStorage.getItem(ACTIVE_ID_KEY);if(previous) resumeActive(previous);
+}
+function scheduleForDate(){const d=$('schedule-date').value;if(!d)return [];const day=new Date(`${d}T12:00:00`).getDay();return state.config.timetable[String(day)]||[];}
+function updateSlotOptions(prefer){
+  const classId=$('session-class').value;const rows=scheduleForDate().filter(s=>s.classId===classId);
+  const preferred=[...new Set(rows.map(s=>s.time))];const all=[...preferred,...state.config.timeSlots.filter(s=>!preferred.includes(s))];
+  $('session-slot').innerHTML='<option value="">Select a time slot</option>'+all.map(t=>`<option value="${escapeHtml(t)}">${escapeHtml(t)}${preferred.includes(t)?' (scheduled)':''}</option>`).join('');
+  if(prefer && all.includes(prefer))$('session-slot').value=prefer;
+  else if(preferred.length===1)$('session-slot').value=preferred[0];
+  else $('session-slot').value='';
+  autofillRoom();
+}
+function autofillRoom(){const row=scheduleForDate().find(r=>r.classId===$('session-class').value&&r.time===$('session-slot').value);$('session-room').value=row?.room||'';}
+function renderDaily(){const selected=$('schedule-date').value;const holiday=state.localHolidays.includes(selected);$('holiday-toggle').checked=holiday;const target=$('daily-schedule');
+  if(holiday){target.innerHTML='<div class="alert warn">Marked as a holiday in this browser. Uncheck to show scheduled classes.</div>';return;}
+  const entries=scheduleForDate();if(!entries.length){target.innerHTML='<p class="muted">No lectures in your saved timetable for this day.</p>';return;}
+  target.innerHTML=entries.map((s,i)=>{const c=classById(s.classId);return `<div class="item"><div class="slotrow"><div class="time">${escapeHtml(s.time)}</div><div><div class="itemtitle">${escapeHtml(c?.subject||'')} · ${escapeHtml(c?.name||'')}</div><div class="note">Room: ${escapeHtml(s.room||'To be confirmed')}</div></div></div><button type="button" class="btn subtle sm" data-choose="${i}">Choose slot</button></div>`;}).join('');
+  target.querySelectorAll('[data-choose]').forEach(b=>b.addEventListener('click',()=>{const s=entries[Number(b.dataset.choose)];$('session-class').value=s.classId;updateSlotOptions(s.time);$('session-room').value=s.room||'';$('start-form-card').scrollIntoView({behavior:'smooth',block:'start'});}));
+}
+async function login(e){e.preventDefault();clearError('login-error');state.teacherKey=$('admin-key').value.trim();setBusy('login-button',true);
+  try{await api('/api/holidays',{teacher:true});$('admin-key').value='';initTeacher();}
+  catch(err){state.teacherKey='';errorBox('login-error',`${err.message} Make sure ADMIN_KEY is configured as a Worker Secret.`);}
+  finally{setBusy('login-button',false);}
+}
+function logout(){state.teacherKey='';state.activeId=null;state.detail=null;stopPolling();$('admin-key').value='';showScreen('login-screen');}
+async function startSession(e){e.preventDefault();clearError('session-error');const c=classById($('session-class').value),time=$('session-slot').value,date=$('schedule-date').value;
+  if(!c||!time||!date){errorBox('session-error','Select class, date and time slot.');return;}
+  const body={classId:c.id,className:c.name,subject:c.subject,sessionDate:date,timeSlot:time};
+  const geo=$('session-geo').checked;
+  if(geo){try{const position=await new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(Error('This browser does not support geolocation.'));navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:0});});body.geoFence=true;body.teacherLat=position.coords.latitude;body.teacherLng=position.coords.longitude;}
+  catch{errorBox('session-error','Could not obtain teacher location. Allow GPS/location access or uncheck the location requirement.');return;}}
+  setBusy('start-button',true);
+  try{const result=await api('/api/sessions',{method:'POST',body,teacher:true});state.activeMeta={className:c.name,subject:c.subject,date,time};await showActive(result.sessionId);}
+  catch(err){errorBox('session-error',err.message);}
+  finally{setBusy('start-button',false);}
+}
+async function resumeActive(id){try{const r=await api(`/api/sessions/${encodeURIComponent(id)}`,{teacher:true});
+  if(!r.session?.active){sessionStorage.removeItem(ACTIVE_ID_KEY);return;}const s=r.session;state.activeMeta={className:s.class_name,subject:s.subject,date:s.session_date,time:s.time_slot};await showActive(id,r);
+}catch{sessionStorage.removeItem(ACTIVE_ID_KEY);}}
+async function showActive(id,loaded){state.activeId=id;sessionStorage.setItem(ACTIVE_ID_KEY,id);stopPolling();
+  for(const tab of ['schedule','classes','history'])$('tab-'+tab).classList.add('hidden');document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));$('detail-panel').classList.add('hidden');$('active-panel').classList.remove('hidden');
+  $('active-title').textContent=`${state.activeMeta.className} · ${state.activeMeta.subject}`;$('active-subtitle').textContent=`${state.activeMeta.date} · ${state.activeMeta.time}`;
+  const link=new URL(window.location.href);link.search='';link.hash='';link.searchParams.set('s',id);$('session-link').value=link.toString();
+  $('qr-code').innerHTML='';if(typeof QRCode==='function'){new QRCode($('qr-code'),{text:link.toString(),width:190,height:190,colorDark:'#10264d',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}
+  else{$('qr-code').textContent='QR library did not load. Share the student attendance link instead.';}
+  await refreshLive(loaded);state.timer=setInterval(()=>refreshLive(),5000);
+}
+function stopPolling(){if(state.timer){clearInterval(state.timer);state.timer=null;}}
+async function refreshLive(loaded){if(!state.activeId)return;
+  try{const r=loaded||await api(`/api/sessions/${encodeURIComponent(state.activeId)}`,{teacher:true});if(!r.session?.active){stopPolling();$('active-subtitle').textContent+=' · Session ended';$('end-session').disabled=true;}
+  const records=new Map((r.attendance||[]).map(x=>[x.roll_number,x]));const students=r.students||[];const present=students.filter(s=>isPresent(records.get(s.rollNumber))).length;$('live-count').textContent=`${present}/${students.length}`;
+  $('live-rows').innerHTML=students.map(s=>{const a=records.get(s.rollNumber);return `<tr><td>${escapeHtml(s.rollNumber)}</td><td>${escapeHtml(s.name)}</td><td>${badgeFor(a?.status)}</td><td>${!isPresent(a)?`<button class="btn subtle sm" data-override="${escapeHtml(s.rollNumber)}">Override</button>`:'—'}</td></tr>`;}).join('');
+  $('live-rows').querySelectorAll('[data-override]').forEach(b=>b.addEventListener('click',()=>override(state.activeId,b.dataset.override,true)));
+  }catch(err){stopPolling();status(`Live roster refresh stopped: ${err.message}`);}
+}
+async function endSession(){if(!state.activeId||!confirm('End this attendance session?'))return;setBusy('end-session',true);
+  try{await api(`/api/sessions/${encodeURIComponent(state.activeId)}/end`,{method:'POST',teacher:true});stopPolling();state.activeId=null;sessionStorage.removeItem(ACTIVE_ID_KEY);$('end-session').disabled=false;nav('history');status('Session ended and saved to D1.','ok');}
+  catch(err){status(err.message);}finally{setBusy('end-session',false);}
+}
+async function loadRosterCards(){const container=$('class-cards');container.innerHTML=state.config.classes.map(c=>`<div class="card"><div class="pill" style="width:max-content;margin-bottom:10px">${escapeHtml(c.name)}</div><h3 style="margin-bottom:6px">${escapeHtml(c.subject)}</h3><p class="note">Class ID: ${escapeHtml(c.id)}</p><div class="flexrow"><span class="badge" id="roster-total-${escapeHtml(c.id)}">Loading…</span><button type="button" class="btn subtle sm" data-roster="${escapeHtml(c.id)}">View / Import</button></div></div>`).join('');
+  container.querySelectorAll('[data-roster]').forEach(b=>b.addEventListener('click',()=>editRoster(b.dataset.roster)));
+  await Promise.all(state.config.classes.map(async c=>{try{const r=await api(`/api/rosters/${encodeURIComponent(c.id)}`,{teacher:true});$(`roster-total-${c.id}`).textContent=`${r.students.length} students`;}catch{$(`roster-total-${c.id}`).textContent='Load failed';}}));
+}
+async function editRoster(classId){state.rosterClassId=classId;const c=classById(classId);$('roster-title').textContent=`Roster: ${c.name} — ${c.subject}`;$('roster-editor').classList.remove('hidden');$('roster-file').value='';clearError('roster-error');$('roster-count').textContent='';
+  try{const r=await api(`/api/rosters/${encodeURIComponent(classId)}`,{teacher:true});$('roster-text').value=r.students.map(s=>`${s.rollNumber}, ${s.name}`).join('\n');$('roster-count').textContent=`Currently ${r.students.length} students`;}
+  catch(err){errorBox('roster-error',err.message);}
+  $('roster-editor').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function parseCSV(raw){const rows=[];let row=[],cell='',quotes=false;
+  for(let i=0;i<raw.length;i++){const c=raw[i];if(c==='"'){if(quotes&&raw[i+1]==='"'){cell+='"';i++;}else{quotes=!quotes;}}
+  else if(c===','&&!quotes){row.push(cell);cell='';}
+  else if((c==='\n'||c==='\r')&&!quotes){if(c==='\r'&&raw[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell='';}
+  else{cell+=c;}}
+  if(quotes)throw Error('Unclosed quote in CSV file.');row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows;
+}
+function normalizeRoster(text){const rows=parseCSV(text);if(rows.length&&/^(roll\s*(number|no\.?|no)?|university\s*roll)/i.test(rows[0][0].trim()))rows.shift();
+  if(!rows.length)throw Error('Student roster is empty.');if(rows.length>300)throw Error('Maximum 300 students per roster.');
+  const seen=new Set();return rows.map((row,i)=>{const roll=String(row[0]||'').trim(),name=String(row.slice(1).join(',')||'').trim();if(!roll||!name||roll.length>50||name.length>150)throw Error(`Invalid roll/name at row ${i+1}.`);if(seen.has(roll))throw Error(`Duplicate roll number: ${roll}`);seen.add(roll);return {rollNumber:roll,name};});
+}
+async function saveRoster(){clearError('roster-error');if(!state.rosterClassId)return;let students;
+  try{students=normalizeRoster($('roster-text').value);}catch(err){errorBox('roster-error',err.message);return;}
+  if(!confirm(`Replace roster for ${classById(state.rosterClassId).name} with ${students.length} students?`))return;
+  setBusy('save-roster',true);
+  try{const r=await api(`/api/rosters/${encodeURIComponent(state.rosterClassId)}`,{method:'PUT',body:{students},teacher:true});$('roster-count').textContent=`Saved ${r.count} students in D1`;$('roster-editor').classList.add('hidden');await loadRosterCards();status(`Saved ${r.count} students in Cloudflare D1.`, 'ok');}
+  catch(err){errorBox('roster-error',err.message);}
+  finally{setBusy('save-roster',false);}
+}
+async function loadHistory(){$('history-items').innerHTML='<p class="muted">Loading attendance records…</p>';
+  try{const r=await api('/api/sessions',{teacher:true});const sessions=r.sessions||[];
+    if(!sessions.length){$('history-items').innerHTML='<p class="muted">No attendance sessions yet.</p>';return;}
+    $('history-items').innerHTML=sessions.map(s=>`<div class="item"><div><div class="itemtitle">${escapeHtml(s.class_name)} · ${escapeHtml(s.subject)}</div><div class="note">${escapeHtml(s.session_date)} · ${escapeHtml(s.time_slot)} · ${new Date(s.started_at).toLocaleString()}</div></div><div class="actions"><span class="pill ${s.active?'green':''}">${s.active?'Active':'Ended'}</span><span class="badge">${Number(s.present_count)||0} present</span><button type="button" class="btn outline sm" data-detail="${escapeHtml(s.id)}">Details</button></div></div>`).join('');
+    $('history-items').querySelectorAll('[data-detail]').forEach(b=>b.addEventListener('click',()=>openDetail(b.dataset.detail)));
+  }catch(err){$('history-items').innerHTML=`<div class="alert error">${escapeHtml(err.message)}</div>`;}
+}
+async function openDetail(id){try{const r=await api(`/api/sessions/${encodeURIComponent(id)}`,{teacher:true});state.detail=r;const s=r.session;$('detail-title').textContent=`${s.class_name} · ${s.subject}`;$('detail-subtitle').textContent=`${s.session_date} · ${s.time_slot}`;
+  const records=new Map((r.attendance||[]).map(a=>[a.roll_number,a]));$('detail-rows').innerHTML=(r.students||[]).map(student=>{const a=records.get(student.rollNumber);return `<tr><td>${escapeHtml(student.rollNumber)}</td><td>${escapeHtml(student.name)}</td><td>${escapeHtml(a?.email||'—')}</td><td>${badgeFor(a?.status)} ${a?.distance_m!=null?`(${Math.round(a.distance_m)} m)`:''}</td><td>${isPresent(a)?'Present':'Not counted'}</td><td>${!isPresent(a)?`<button type="button" class="btn subtle sm" data-override="${escapeHtml(student.rollNumber)}">Override</button>`:'—'}</td></tr>`;}).join('');
+  $('detail-rows').querySelectorAll('[data-override]').forEach(b=>b.addEventListener('click',()=>override(id,b.dataset.override,false)));
+  $('detail-panel').classList.remove('hidden');$('detail-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(err){status(err.message);}
+}
+function badgeFor(st){if(!st)return '<span class="pill">Absent</span>';
+  const names={verified:['Verified','green'],unverified:['Present · unverified','amber'],override:['Manual override','green'],remote:['Remote · not counted','red'],denied:['Location denied','red']};const [label,color]=names[st]||[st,'amber'];return `<span class="pill ${color}">${escapeHtml(label)}</span>`;
+}
+async function override(sessionId,roll,inLive){if(!confirm(`Mark roll ${roll} as present by manual override?`))return;
+  try{await api(`/api/sessions/${encodeURIComponent(sessionId)}/override`,{method:'POST',teacher:true,body:{rollNumber:roll}});
+    if(inLive)await refreshLive();else await openDetail(sessionId);status(`Roll ${roll} marked present by teacher override.`, 'ok');}
+  catch(err){status(err.message);}
+}
+function exportDetail(){if(!state.detail)return;const r=state.detail;const s=r.session;const records=new Map((r.attendance||[]).map(a=>[a.roll_number,a]));
+  const rows=[['Class','Subject','Date','Time Slot','Roll Number','Name','Email','Attendance','Location Status','Distance (m)','Marked At']];
+  for(const student of r.students||[]){const a=records.get(student.rollNumber);rows.push([s.class_name,s.subject,s.session_date,s.time_slot,student.rollNumber,student.name,a?.email||'',isPresent(a)?'Present':'Absent',a?.status||'absent',a?.distance_m??'',a?.marked_at||'']);}
+  csvDownload(`C4Y_${s.class_id}_${s.session_date}_${s.time_slot.replace(/[^0-9-]/g,'')}.csv`,rows);
+}
+async function studentStart(id){state.studentSessionId=id;showScreen('student-screen');try{const r=await api(`/api/join/${encodeURIComponent(id)}`);state.studentSession=r;
+  $('student-title').textContent=`${r.className} · ${r.subject}`;$('student-info').textContent=`${r.date} · ${r.timeSlot}`;
+  if(localStorage.getItem(`c4y_submitted_${id}`)){studentResult('You already submitted attendance for this session from this browser.','warn');return;}
+  $('student-geo-note').classList.toggle('hidden',!r.geoFence);$('student-form').classList.remove('hidden');
+}catch(err){studentResult(err.message,'error');}}
+function studentResult(message,type){$('student-form').classList.add('hidden');const target=$('student-result');target.className=`alert ${type}`;target.textContent=message;}
+async function markAttendance(e){e.preventDefault();const roll=$('student-roll').value.trim(),email=$('student-email').value.trim().toLowerCase(),r=state.studentSession;
+  if(!r||!roll||!email)return;setBusy('submit-attendance',true);
+  try{const body={rollNumber:roll,email};if(r.geoFence){let pos;try{pos=await new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(Error('Geolocation unavailable'));navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:0});});}catch{throw Error('Location access is required for this session. Enable device location/GPS and try again.');}body.lat=pos.coords.latitude;body.lng=pos.coords.longitude;}
+    const result=await api(`/api/join/${encodeURIComponent(state.studentSessionId)}`,{method:'POST',body});localStorage.setItem(`c4y_submitted_${state.studentSessionId}`,'1');
+    if(['remote','denied'].includes(result.status))studentResult('Submission received but NOT counted as present because of the location check. Please contact your teacher for verification.','warn');
+    else studentResult('Attendance successfully submitted. Your teacher can see the record. You may close this page.','ok');
+  }catch(err){status(err.message);}
+  finally{setBusy('submit-attendance',false);}
+}
+function bind(){
+  $('login-form').addEventListener('submit',login);$('logout').addEventListener('click',logout);
+  document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.tab)));
+  $('schedule-date').addEventListener('change',()=>{renderDaily();updateSlotOptions();});
+  $('session-class').addEventListener('change',()=>updateSlotOptions());$('session-slot').addEventListener('change',autofillRoom);
+  $('holiday-toggle').addEventListener('change',e=>{const date=$('schedule-date').value;if(!date)return;state.localHolidays=e.target.checked?[...new Set([...state.localHolidays,date])]:state.localHolidays.filter(d=>d!==date);localStorage.setItem(HOLIDAY_KEY,JSON.stringify(state.localHolidays));renderDaily();});
+  $('session-form').addEventListener('submit',startSession);$('end-session').addEventListener('click',endSession);
+  $('copy-link').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('session-link').value);status('Student link copied.','ok');}catch{const el=$('session-link');el.focus();el.select();status('Select and copy the link shown above.','warn');}});
+  $('refresh-rosters').addEventListener('click',loadRosterCards);$('close-roster').addEventListener('click',()=>$('roster-editor').classList.add('hidden'));
+  $('roster-file').addEventListener('change',async e=>{const file=e.target.files?.[0];if(file){if(file.size>100000){errorBox('roster-error','File too large (maximum 100 KB).');return;} $('roster-text').value=await file.text();}});
+  $('save-roster').addEventListener('click',saveRoster);$('refresh-history').addEventListener('click',loadHistory);
+  $('close-detail').addEventListener('click',()=>$('detail-panel').classList.add('hidden'));
+  $('export-csv').addEventListener('click',exportDetail);$('student-form').addEventListener('submit',markAttendance);
+}
+(async()=>{bind();const sessionId=new URLSearchParams(location.search).get('s');
+  if(sessionId){await studentStart(sessionId);return;}
+  try{await loadConfig();showScreen('login-screen');}catch(err){showScreen('login-screen');errorBox('login-error',err.message);$('login-button').disabled=true;}
+})();
+</script>
 </body>
 </html>
