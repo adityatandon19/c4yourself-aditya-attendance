@@ -1,1 +1,55 @@
-
+{
+  "version": 1,
+  "classes": [
+    { "id": "oops-cse21", "name": "CSE-21", "subject": "OOPS with C++" },
+    { "id": "oops-cse26", "name": "CSE-26", "subject": "OOPS with C++" },
+    { "id": "dstl-cse22", "name": "CSE-22", "subject": "DSTL" },
+    { "id": "lab-cse26-g1", "name": "CSE-26 G1", "subject": "OOPS Lab" },
+    { "id": "lab-cse26-g2", "name": "CSE-26 G2", "subject": "OOPS Lab" },
+    { "id": "domain-networking", "name": "Domain Training", "subject": "Computer Networking" }
+  ],
+  "timeSlots": [
+    "08:50 - 09:40",
+    "09:40 - 10:30",
+    "10:40 - 11:30",
+    "10:40 - 12:20",
+    "11:30 - 12:20",
+    "12:20 - 13:10",
+    "14:00 - 14:50",
+    "14:50 - 15:40",
+    "15:40 - 16:30"
+  ],
+  "timetable": {
+    "1": [
+      { "classId": "oops-cse26", "time": "08:50 - 09:40", "room": "KC-408" },
+      { "classId": "domain-networking", "time": "10:40 - 12:20", "room": "KC-402" },
+      { "classId": "oops-cse21", "time": "14:00 - 14:50", "room": "KC-405" }
+    ],
+    "2": [
+      { "classId": "oops-cse26", "time": "08:50 - 09:40", "room": "KC-402" },
+      { "classId": "lab-cse26-g2", "time": "12:20 - 13:10", "room": "Lab" },
+      { "classId": "lab-cse26-g2", "time": "14:00 - 14:50", "room": "Lab" }
+    ],
+    "3": [
+      { "classId": "oops-cse21", "time": "08:50 - 09:40", "room": "KC-405" },
+      { "classId": "dstl-cse22", "time": "11:30 - 12:20", "room": "KC-407" },
+      { "classId": "lab-cse26-g1", "time": "12:20 - 13:10", "room": "Lab" },
+      { "classId": "lab-cse26-g1", "time": "14:00 - 14:50", "room": "Lab" },
+      { "classId": "dstl-cse22", "time": "15:40 - 16:30", "room": "KC-407" }
+    ],
+    "4": [
+      { "classId": "oops-cse21", "time": "08:50 - 09:40", "room": "KC-405" },
+      { "classId": "domain-networking", "time": "10:40 - 11:30", "room": "KC-402" },
+      { "classId": "oops-cse26", "time": "11:30 - 12:20", "room": "KC-404" },
+      { "classId": "oops-cse26", "time": "14:50 - 15:40", "room": "KC-404" },
+      { "classId": "oops-cse21", "time": "15:40 - 16:30", "room": "KC-405" }
+    ],
+    "5": [
+      { "classId": "dstl-cse22", "time": "10:40 - 11:30", "room": "KC-407" },
+      { "classId": "dstl-cse22", "time": "14:00 - 14:50", "room": "KC-407" },
+      { "classId": "dstl-cse22", "time": "14:50 - 15:40", "room": "KC-407" }
+    ],
+    "6": [],
+    "0": []
+  }
+}
